@@ -1,0 +1,32 @@
+name: Backup Fabio Campaign Files
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    # Allow manual trigger
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create backup timestamp
+        run: echo "BACKUP_DATE=$(date +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_ENV
+
+      - name: Commit if changes
+        run: |
+          git config user.name "Fabio Backup Bot"
+          git config user.email "fabio@backup.bot"
+          
+          if git diff --quiet; then
+            echo "No changes to commit"
+          else
+            git add -A
+            git commit -m "Backup: $BACKUP_DATE"
+            git push
+            echo "Backup pushed successfully"
+          fi
